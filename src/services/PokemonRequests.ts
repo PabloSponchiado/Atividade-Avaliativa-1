@@ -38,12 +38,10 @@ class Requests {
     async fetchPokemonData(pokemon_name: string) {
         try {
             const normalized_name = pokemon_name.toLowerCase().trim();
-            const pokemon = {
+            const pokemon: Pokemon = {
                 pokemon_name: '',
-                pokemon_id: 0,
                 pokemon_image: '',
                 description: '',
-                types: [] as string[]
             };
             const api_response = await fetch(`${this.api_url}${normalized_name}`);
 
@@ -52,7 +50,14 @@ class Requests {
                 pokemon.pokemon_name = pokemon_info.name;
                 pokemon.pokemon_id = pokemon_info.id;
                 pokemon.pokemon_image = `${this.image_url}${pokemon.pokemon_id}.gif`;
-                pokemon.types = pokemon_info.types.map((t: any) => t.type.name);
+                pokemon.types = {
+                    type1: pokemon_info.types[0]?.type.name || 'normal',
+                    type2: pokemon_info.types[1]?.type.name,
+                };
+                pokemon.height = pokemon_info.height;
+                pokemon.weight = pokemon_info.weight;
+                pokemon.stats = pokemon_info.stats;
+                pokemon.abilities = pokemon_info.abilities;
 
                 // Fetch Pokemon species description
                 try {

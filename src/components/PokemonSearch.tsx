@@ -1,21 +1,23 @@
-import React, { useState, useRef, useEffect } from "react";
+import { Image } from "expo-image";
+import { useRouter } from "expo-router";
+import { StatusBar } from "expo-status-bar";
+import React, { useEffect, useRef, useState } from "react";
 import {
+    ActivityIndicator,
+    Animated,
+    Dimensions,
     Keyboard,
+    Pressable,
+    ScrollView,
     StyleSheet,
     Text,
     TextInput,
-    View,
     TouchableOpacity,
-    ActivityIndicator,
-    ScrollView,
-    Animated,
-    Dimensions,
+    View,
 } from "react-native";
-import { Image } from "expo-image";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { StatusBar } from "expo-status-bar";
-import PokemonRequests from "../services/PokemonRequests";
 import Pokemon from "../interface/InterfacePokemon";
+import PokemonRequests from "../services/PokemonRequests";
 
 const TYPE_COLORS: Record<string, string> = {
     normal: "#A8A77A",
@@ -41,6 +43,7 @@ const TYPE_COLORS: Record<string, string> = {
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
 export default function PokemonSearch() {
+    const router = useRouter();
     const [searchQuery, setSearchQuery] = useState("");
     const [loading, setLoading] = useState(false);
     const [errorMsg, setErrorMsg] = useState("");
@@ -130,8 +133,8 @@ export default function PokemonSearch() {
     };
 
     const getPrimaryTypeColor = (): string => {
-        if (pokemon && pokemon.types.length > 0) {
-            return TYPE_COLORS[pokemon.types[0]] || "#68a0f0";
+        if (pokemon?.types) {
+            return TYPE_COLORS[pokemon.types.type1] || "#68a0f0";
         }
         return "#68a0f0";
     };
@@ -196,16 +199,23 @@ export default function PokemonSearch() {
 
                 {/* Pokemon Card */}
                 {pokemon ? (
-                    <Animated.View
-                        style={[
-                            styles.card,
-                            {
-                                opacity: cardOpacity,
-                                transform: [{ translateY: cardTranslateY }],
-                                borderTopColor: getPrimaryTypeColor(),
-                            },
-                        ]}
+                    <Pressable
+                        onPress={() => {
+                            if (pokemon.pokemon_id) {
+                                router.push(`/pokemon/${pokemon.pokemon_id}` as any);
+                            }
+                        }}
                     >
+                        <Animated.View
+                            style={[
+                                styles.card,
+                                {
+                                    opacity: cardOpacity,
+                                    transform: [{ translateY: cardTranslateY }],
+                                    borderTopColor: getPrimaryTypeColor(),
+                                },
+                            ]}
+                        >
                         {/* Card Header */}
                         <View
                             style={[
@@ -244,7 +254,9 @@ export default function PokemonSearch() {
 
                         {/* Types */}
                         <View style={styles.typesContainer}>
-                            {pokemon.types.map((type) => (
+                            {[pokemon.types?.type1, pokemon.types?.type2]
+                                .filter((type): type is string => Boolean(type))
+                                .map((type) => (
                                 <View
                                     key={type}
                                     style={[
@@ -256,7 +268,7 @@ export default function PokemonSearch() {
                                         {type.charAt(0).toUpperCase() + type.slice(1)}
                                     </Text>
                                 </View>
-                            ))}
+                                ))}
                         </View>
 
                         {/* Divider */}
@@ -277,7 +289,9 @@ export default function PokemonSearch() {
                             <View style={styles.infoRow}>
                                 <Text style={styles.infoLabel}>Tipagem</Text>
                                 <Text style={styles.infoValue}>
-                                    {pokemon.types.join(", ")}
+                                    {[pokemon.types?.type1, pokemon.types?.type2]
+                                        .filter(Boolean)
+                                        .join(", ")}
                                 </Text>
                             </View>
                         </View>
@@ -291,7 +305,8 @@ export default function PokemonSearch() {
                                 </Text>
                             </View>
                         ) : null}
-                    </Animated.View>
+                        </Animated.View>
+                    </Pressable>
                 ) : null}
 
                 {/* Empty State */}
@@ -300,7 +315,7 @@ export default function PokemonSearch() {
                         <Text style={styles.emptyStateIcon}>🎮</Text>
                         <Text style={styles.emptyStateTitle}>Nenhum Pokémon buscado</Text>
                         <Text style={styles.emptyStateText}>
-                            Digite o nome ou número de um Pokémon acima e toque em "Buscar"
+                            Digite o nome ou número de um Pokémon acima e toque em &quot;Buscar&quot;
                             para ver suas informações!
                         </Text>
                     </View>
