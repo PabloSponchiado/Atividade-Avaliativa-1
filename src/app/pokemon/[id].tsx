@@ -3,8 +3,8 @@ import { useEffect, useState } from "react";
 import { ActivityIndicator, SafeAreaView, StyleSheet, Text } from "react-native";
 import ShowPokemon from "../../components/ShowPokemon/ShowPokemon";
 import Pokemon from "../../interface/InterfacePokemon";
-import Requests from "../../services/PokemonRequests";
 import { alternarFavorito, ehFavorito } from "../../services/FavoritesStorage";
+import Requests from "../../services/PokemonRequests";
 
 export default function PokemonDetail() {
     const params = useLocalSearchParams<{ id: string }>();

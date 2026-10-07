@@ -3,8 +3,8 @@ import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useState } from "react";
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { limparFavoritos, buscarFavoritos, removerFavorito } from "../services/FavoritesStorage";
 import Pokemon from "../interface/InterfacePokemon";
+import { buscarFavoritos, limparFavoritos, removerFavorito } from "../services/FavoritesStorage";
 import PokemonRequests from "../services/PokemonRequests";
 
 export default function FavoritesScreen() {
