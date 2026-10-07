@@ -48,6 +48,9 @@ export default function PokemonSearch() {
     const [loading, setLoading] = useState(false);
     const [errorMsg, setErrorMsg] = useState("");
     const [pokemon, setPokemon] = useState<Pokemon | null>(null);
+    const [pokemonList, setPokemonList] = useState<Pokemon[]>([]);
+    const [listLoading, setListLoading] = useState(true);
+    const [listError, setListError] = useState("");
 
     // Animations
     const cardOpacity = useRef(new Animated.Value(0)).current;
@@ -76,6 +79,26 @@ export default function PokemonSearch() {
             pulseAnim.setValue(1);
         }
     }, [loading]);
+
+    useEffect(() => {
+        const loadPokemonList = async () => {
+            try {
+                const result = await PokemonRequests.fetchPokemonList(0, 10000);
+                if (result) {
+                    setPokemonList(result);
+                } else {
+                    setListError("Não foi possível carregar a lista de Pokémon.");
+                }
+            } catch (error) {
+                setListError("Não foi possível carregar a lista de Pokémon.");
+                console.error(error);
+            } finally {
+                setListLoading(false);
+            }
+        };
+
+        loadPokemonList();
+    }, []);
 
     const animateCardIn = () => {
         cardOpacity.setValue(0);
@@ -154,6 +177,13 @@ export default function PokemonSearch() {
                     <Text style={styles.subtitle}>
                         Busque um Pokémon pelo nome ou número
                     </Text>
+                    <Pressable
+                        accessibilityRole="button"
+                        style={styles.favoritesButton}
+                        onPress={() => router.push("/favorites" as any)}
+                    >
+                        <Text style={styles.favoritesButtonText}>⭐ Meus favoritos</Text>
+                    </Pressable>
                 </View>
 
                 {/* Search Section */}
@@ -196,6 +226,43 @@ export default function PokemonSearch() {
                         <Text style={styles.errorText}>{errorMsg}</Text>
                     </Animated.View>
                 ) : null}
+
+                <View style={styles.listSection}>
+                    <View style={styles.listHeader}>
+                        <Text style={styles.listTitle}>Pokédex</Text>
+                        {!listLoading && !listError ? (
+                            <Text style={styles.listCount}>{pokemonList.length} Pokémon</Text>
+                        ) : null}
+                    </View>
+
+                    {listLoading ? (
+                        <ActivityIndicator color="#ef4444" size="large" style={styles.listLoader} />
+                    ) : listError ? (
+                        <Text style={styles.listError}>{listError}</Text>
+                    ) : (
+                        <View style={styles.listGrid}>
+                            {pokemonList.map((item) => (
+                                <Pressable
+                                    key={item.pokemon_id}
+                                    style={styles.listItem}
+                                    onPress={() => router.push(`/pokemon/${item.pokemon_id}` as any)}
+                                >
+                                    <Image
+                                        source={{ uri: item.pokemon_image }}
+                                        style={styles.listItemImage}
+                                        contentFit="contain"
+                                    />
+                                    <Text style={styles.listItemNumber}>
+                                        #{String(item.pokemon_id).padStart(3, "0")}
+                                    </Text>
+                                    <Text style={styles.listItemName} numberOfLines={1}>
+                                        {item.pokemon_name.charAt(0).toUpperCase() + item.pokemon_name.slice(1)}
+                                    </Text>
+                                </Pressable>
+                            ))}
+                        </View>
+                    )}
+                </View>
 
                 {/* Pokemon Card */}
                 {pokemon ? (
@@ -357,6 +424,20 @@ const styles = StyleSheet.create({
         color: "#94a3b8",
         marginTop: 6,
     },
+    favoritesButton: {
+        marginTop: 16,
+        paddingHorizontal: 18,
+        paddingVertical: 11,
+        borderRadius: 20,
+        backgroundColor: "#1e293b",
+        borderWidth: 1,
+        borderColor: "#475569",
+    },
+    favoritesButtonText: {
+        color: "#f8fafc",
+        fontSize: 14,
+        fontWeight: "700",
+    },
 
     // Search
     searchContainer: {
@@ -403,6 +484,68 @@ const styles = StyleSheet.create({
         fontSize: 17,
         fontWeight: "700",
         letterSpacing: 0.5,
+    },
+
+    // Pokemon list
+    listSection: {
+        marginBottom: 24,
+    },
+    listHeader: {
+        flexDirection: "row",
+        alignItems: "baseline",
+        justifyContent: "space-between",
+        marginBottom: 14,
+    },
+    listTitle: {
+        color: "#f8fafc",
+        fontSize: 22,
+        fontWeight: "800",
+    },
+    listCount: {
+        color: "#94a3b8",
+        fontSize: 13,
+        fontWeight: "600",
+    },
+    listLoader: {
+        paddingVertical: 40,
+    },
+    listError: {
+        color: "#fca5a5",
+        textAlign: "center",
+        paddingVertical: 24,
+    },
+    listGrid: {
+        flexDirection: "row",
+        flexWrap: "wrap",
+        justifyContent: "space-between",
+        rowGap: 12,
+    },
+    listItem: {
+        width: "48.5%",
+        minHeight: 184,
+        alignItems: "center",
+        backgroundColor: "#1e293b",
+        borderRadius: 16,
+        padding: 12,
+        borderWidth: 1,
+        borderColor: "#334155",
+    },
+    listItemImage: {
+        width: 100,
+        height: 100,
+    },
+    listItemNumber: {
+        color: "#64748b",
+        fontSize: 12,
+        fontWeight: "700",
+        marginTop: 2,
+    },
+    listItemName: {
+        color: "#f8fafc",
+        fontSize: 15,
+        fontWeight: "700",
+        marginTop: 4,
+        maxWidth: "100%",
     },
 
     // Error

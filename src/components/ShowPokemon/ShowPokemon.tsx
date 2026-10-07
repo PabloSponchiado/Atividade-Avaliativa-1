@@ -1,9 +1,13 @@
 import { Image } from "expo-image";
-import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import Pokemon from "../../interface/InterfacePokemon";
 
 interface ShowPokemonProps {
     pokemon: Pokemon;
+    isFavorite: boolean;
+    isFavoriteLoading: boolean;
+    favoriteError: string;
+    onToggleFavorite: () => void;
 }
 
 const TYPE_COLORS: Record<string, string> = {
@@ -14,7 +18,13 @@ const TYPE_COLORS: Record<string, string> = {
     steel: "#B7B7CE", fairy: "#D685AD",
 };
 
-export default function ShowPokemon({ pokemon }: ShowPokemonProps) {
+export default function ShowPokemon({
+    pokemon,
+    isFavorite,
+    isFavoriteLoading,
+    favoriteError,
+    onToggleFavorite,
+}: ShowPokemonProps) {
     const getStat = (name: string) =>
         pokemon.stats?.find((stat) => stat.stat.name === name)?.base_stat ?? "-";
 
@@ -29,6 +39,20 @@ export default function ShowPokemon({ pokemon }: ShowPokemonProps) {
             <Text style={styles.name}>{name}</Text>
             <Text style={styles.id}>Pokédex #{pokemon.pokemon_id}</Text>
             <Image source={{ uri: pokemon.pokemon_image }} style={styles.image} contentFit="contain" />
+
+            <View style={styles.favoriteContainer}>
+                <Pressable
+                    accessibilityRole="button"
+                    accessibilityState={{ disabled: isFavoriteLoading }}
+                    onPress={onToggleFavorite}
+                    style={[styles.favoriteButton, isFavorite && styles.favoriteButtonActive, isFavoriteLoading && styles.favoriteButtonDisabled]}
+                >
+                    <Text style={[styles.favoriteButtonText, isFavorite && styles.favoriteButtonTextActive]}>
+                        {isFavorite ? "❤️ Favoritado" : "🤍 Favoritar"}
+                    </Text>
+                </Pressable>
+                {favoriteError ? <Text style={styles.favoriteError}>{favoriteError}</Text> : null}
+            </View>
 
             <View style={styles.types}>
                 {types.map((type) => (
@@ -69,6 +93,13 @@ const styles = StyleSheet.create({
     name: { fontSize: 30, fontWeight: "bold", marginTop: 10, textAlign: "center", color: "#172033" },
     id: { fontSize: 16, color: "#718096", marginBottom: 10, textAlign: "center" },
     image: { width: 250, height: 250 },
+    favoriteContainer: { alignItems: "center", marginBottom: 20 },
+    favoriteButton: { backgroundColor: "#E2E8F0", paddingHorizontal: 24, paddingVertical: 12, borderRadius: 24 },
+    favoriteButtonActive: { backgroundColor: "#FEE2E2" },
+    favoriteButtonText: { color: "#273449", fontSize: 16, fontWeight: "700" },
+    favoriteButtonTextActive: { color: "#B91C1C" },
+    favoriteButtonDisabled: { opacity: 0.6 },
+    favoriteError: { marginTop: 8, color: "#B91C1C", textAlign: "center" },
     types: { flexDirection: "row", justifyContent: "center", alignItems: "center", gap: 10, marginBottom: 20 },
     typeBadge: { paddingHorizontal: 18, paddingVertical: 8, borderRadius: 20 },
     typeText: { color: "#FFFFFF", fontSize: 15, fontWeight: "700" },
